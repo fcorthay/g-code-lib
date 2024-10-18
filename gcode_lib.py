@@ -6,21 +6,31 @@ default_displacement_height = 10
 default_drill_depth = 10
 default_pass_depth = 1
 default_drill_diameter = 4
-default_machining_parameters = [
-    default_displacement_height,
-    default_drill_depth,
-    default_pass_depth,
-    default_drill_diameter
-]
 
 default_fast_displacement_speed = 1000
 default_drill_displacement_speed = 300
 default_drill_bore_speed = 500
-default_displacement_speeds = [
-    default_fast_displacement_speed,
-    default_drill_displacement_speed,
-    default_drill_bore_speed
-]
+                                                                 # values arrays
+displacement_height_id = 0
+drill_depth_id         = 1
+pass_depth_id          = 2
+drill_diameter_id      = 3
+default_machining_parameters = [0 for i in range(drill_diameter_id+1)]
+default_machining_parameters[displacement_height_id] \
+    = default_displacement_height
+default_machining_parameters[drill_depth_id]    = default_drill_depth
+default_machining_parameters[pass_depth_id]     = default_pass_depth
+default_machining_parameters[drill_diameter_id] = default_drill_diameter
+
+fast_displacement_speed_id  = 0
+drill_displacement_speed_id = 1
+drill_bore_speed_id         = 2
+default_displacement_speeds = [0 for i in range(drill_bore_speed_id+1)]
+default_displacement_speeds[fast_displacement_speed_id] \
+    = default_fast_displacement_speed
+default_displacement_speeds[drill_displacement_speed_id] \
+    = default_drill_displacement_speed
+default_displacement_speeds[drill_bore_speed_id] = default_drill_bore_speed
 
 # ==============================================================================
                                                                  # basic g-codes
@@ -162,8 +172,28 @@ def circle_gcode(
     old_x = diameter/2 * math.cos(start_angle)
     old_y = diameter/2 * math.sin(start_angle)
     for index in range(1, facet_nb+1) :
-        new_x = diameter/2 * math.cos(2*index*math.pi/facet_nb+start_angle)
-        new_y = diameter/2 * math.sin(2*index*math.pi/facet_nb+start_angle)
+        new_x = diameter/2 * math.cos(start_angle + index*2*math.pi/facet_nb)
+        new_y = diameter/2 * math.sin(start_angle + index*2*math.pi/facet_nb)
+        g_code += move_steady(new_x-old_x, new_y-old_y, 0, speed)
+        old_x = new_x
+        old_y = new_y
+
+    return(g_code)
+
+# ..............................................................................
+                                                                        # circle
+def circle_arc_gcode(
+    radius, facet_nb=64, start_angle=0, end_angle=90,
+    speed=default_drill_displacement_speed
+):
+    g_code = ''
+    step_angle = (end_angle - start_angle)/facet_nb
+                                                                  # drill facets
+    old_x = radius * math.cos(start_angle)
+    old_y = radius * math.sin(start_angle)
+    for index in range(1, facet_nb+1) :
+        new_x = radius * math.cos(start_angle + index*step_angle)
+        new_y = radius * math.sin(start_angle + index*step_angle)
         g_code += move_steady(new_x-old_x, new_y-old_y, 0, speed)
         old_x = new_x
         old_y = new_y
@@ -197,7 +227,7 @@ def polygon_gcode(
 # ==============================================================================
                                                        # polygons and transforms
 # ..............................................................................
-                              # regular convex polygon (fitting inside a circle)
+                                                                     # rectangle
 def build_retangle(x_offset, y_offset, x_length, y_length):
     coordinates = [
       [x_offset           , y_offset],
@@ -476,9 +506,9 @@ def go_to_start(
     displacement_speeds=default_displacement_speeds,
     init_X_Carve = False
 ):
-    displacement_height = machining_parameters[0]
-    fast_displacement_speed  = displacement_speeds[0]
-    drill_displacement_speed = displacement_speeds[1]
+    displacement_height = machining_parameters[displacement_height_id]
+    fast_displacement_speed  = displacement_speeds[fast_displacement_speed_id]
+    drill_displacement_speed = displacement_speeds[drill_displacement_speed_id]
 
     g_code = ";\n; initialization\n;\n"
     g_code += set_units_to_millimeters()
@@ -503,12 +533,12 @@ def build_drawing_element(
     displacement_speeds=default_displacement_speeds,
     comment=''
 ):
-    displacement_height = machining_parameters[0]
-    drill_depth         = machining_parameters[1]
-    pass_depth          = machining_parameters[2]
-    drill_diameter      = machining_parameters[3]
-    fast_displacement_speed = displacement_speeds[0]
-    drill_bore_speed        = displacement_speeds[2]
+    displacement_height = machining_parameters[displacement_height_id]
+    drill_depth         = machining_parameters[drill_depth_id]
+    pass_depth          = machining_parameters[pass_depth_id]
+    drill_diameter      = machining_parameters[drill_diameter_id]
+    fast_displacement_speed = displacement_speeds[fast_displacement_speed_id]
+    drill_bore_speed        = displacement_speeds[drill_bore_speed_id]
     g_code = ''
                                                                    # add comment
     if comment != '' :
@@ -550,11 +580,11 @@ def build_hole_set(
     displacement_speeds=default_displacement_speeds,
     comment=''
 ):
-    displacement_height = machining_parameters[0]
-    drill_depth         = machining_parameters[1]
-    drill_diameter      = machining_parameters[3]
-    fast_displacement_speed = displacement_speeds[0]
-    drill_bore_speed        = displacement_speeds[2]
+    displacement_height = machining_parameters[displacement_height_id]
+    drill_depth         = machining_parameters[drill_depth_id]
+    drill_diameter      = machining_parameters[drill_diameter_id]
+    fast_displacement_speed = displacement_speeds[fast_displacement_speed_id]
+    drill_bore_speed        = displacement_speeds[drill_bore_speed_id]
     g_code = ''
                                                                    # add comment
     if comment != '' :
@@ -587,13 +617,13 @@ def build_slit_set(
     displacement_speeds=default_displacement_speeds,
     comment=''
 ):
-    displacement_height = machining_parameters[0]
-    drill_depth         = machining_parameters[1]
-    pass_depth          = machining_parameters[2]
-    drill_diameter      = machining_parameters[3]
-    fast_displacement_speed  = displacement_speeds[0]
-    drill_displacement_speed = displacement_speeds[1]
-    drill_bore_speed         = displacement_speeds[2]
+    displacement_height = machining_parameters[displacement_height_id]
+    drill_depth         = machining_parameters[drill_depth_id]
+    pass_depth          = machining_parameters[pass_depth_id]
+    drill_diameter      = machining_parameters[drill_diameter_id]
+    fast_displacement_speed  = displacement_speeds[fast_displacement_speed_id]
+    drill_displacement_speed = displacement_speeds[drill_displacement_speed_id]
+    drill_bore_speed         = displacement_speeds[drill_bore_speed_id]
     g_code = ''
                                                                    # add comment
     if comment != '' :

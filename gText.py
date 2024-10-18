@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import os
 import math
 import gcode_lib
 
@@ -10,6 +11,17 @@ letter_displacement_speeds = gcode_lib.default_displacement_speeds
 half_circle_facet_nb = 8
 quarter_circle_facet_nb = round(half_circle_facet_nb/2)
 lift_for_drill_back = False
+
+# ------------------------------------------------------------------------------
+                                                                     # file spec
+(g_code_file_path, g_code_file_name) = os.path.split(__file__)
+g_code_file_path = g_code_file_path.rstrip('./')
+design_name = g_code_file_name.replace('.py', '')
+g_code_file_name = g_code_file_path + os.sep + design_name + '.gcode'
+
+# ------------------------------------------------------------------------------
+                                                                       # display
+INDENT = 2 * ' '
 
 # ==============================================================================
                                                                # letters g-codes
@@ -25,9 +37,7 @@ def build_line_g_code(
     pass_depth = machining_parameters[gcode_lib.pass_depth_id]
     move_speed = displacement_speeds[gcode_lib.fast_displacement_speed_id]
     drill_speed = displacement_speeds[gcode_lib.drill_displacement_speed_id]
-    bore_speed = displacement_speeds[
-        gcode_lib.drill_bore_speed_id
-    ]
+    bore_speed = displacement_speeds[gcode_lib.drill_bore_speed_id]
     g_code = ''
                                                                             # t1
     if line_specification == 't1' :
@@ -53,7 +63,7 @@ def build_line_g_code(
                                                                             # t4
     if line_specification == 't4' :
         g_code = gcode_lib.move_steady(
-            0, 6.5*drill_diameter, 0, drill_speed
+            0, -6.5*drill_diameter, 0, drill_speed
         )
                                                                             # t4
     if line_specification == 't5' :
@@ -86,7 +96,13 @@ def build_character_g_code(
     displacement_speeds=letter_displacement_speeds,
     lift_for_drill_back=False
 ) :
+    pass_depth = machining_parameters[gcode_lib.pass_depth_id]
+    bore_speed = displacement_speeds[gcode_lib.drill_bore_speed_id]
+                                                                       # comment
     g_code = "; %s\n" % character
+                                                                     # dive down
+    g_code += gcode_lib.move_steady(0, 0, -pass_depth, bore_speed)
+                                                                   # drill lines
     (line_set, entry_point, exit_point) = build_line_set(character)
     for line in line_set :
         g_code += build_line_g_code(
@@ -94,20 +110,64 @@ def build_character_g_code(
             letter_machining_parameters, letter_displacement_speeds,
             lift_for_drill_back
         )
-    return(g_code)
+                                                                  # dive back up
+    g_code += gcode_lib.move_steady(0, 0, pass_depth, bore_speed)
+
+    return(g_code, entry_point, exit_point)
 
 # ==============================================================================
                                                                    # main script
 print('Testing g-codes for drilling text')
 test_string = 'the quick brown fox jumps over the lazy dog'
 
+# ------------------------------------------------------------------------------
+                                                           # write g-code header
+print(INDENT + "Writing \"%s\"" % g_code_file_name)
+g_code_file = open(g_code_file_name, "w")
+g_code_file.write(gcode_lib.go_to_start(
+    machining_parameters=letter_machining_parameters,
+    displacement_speeds=letter_displacement_speeds
+))
+g_code_file.write(";\n; Test text\n;\n")
+
+# ------------------------------------------------------------------------------
+                                                             # write line g-code
 drill_tool_diameter = letter_machining_parameters[gcode_lib.drill_diameter_id]
-g_code = gcode_lib.select_tool(drill_tool_diameter)
+text_g_code = gcode_lib.select_tool(drill_tool_diameter)
+                                                            # go down to surface
+displacement_height = letter_machining_parameters[
+    gcode_lib.displacement_height_id
+]
+pass_depth = letter_machining_parameters[gcode_lib.pass_depth_id]
+drill_diameter = letter_machining_parameters[gcode_lib.drill_diameter_id]
+displacement_speed = letter_displacement_speeds[
+    gcode_lib.fast_displacement_speed_id
+]
+text_g_code += gcode_lib.move_fast(
+    0, 0, -displacement_height + pass_depth, displacement_speed
+)
+                                                              # drill characters
+old_exit_point = [0, 0]
 for character in test_string[:1] :
     print(character)
-    g_code += build_character_g_code(
+    (character_g_code, entry_point, exit_point) = build_character_g_code(
         character,
         letter_machining_parameters, letter_displacement_speeds,
         lift_for_drill_back
     )
-    print(g_code)
+    text_g_code += gcode_lib.move_fast(
+        drill_diameter*(entry_point[0] - old_exit_point[0]),
+        drill_diameter*(entry_point[1] - old_exit_point[1]),
+        0,
+        displacement_speed
+    )
+    text_g_code += gcode_lib.move_fast(0, 0, -pass_depth, displacement_speed)
+    text_g_code += character_g_code
+    text_g_code += gcode_lib.move_fast(0, 0,  pass_depth, displacement_speed)
+    old_exit_point = exit_point
+g_code_file.write(text_g_code)
+
+# ------------------------------------------------------------------------------
+                                                                   # end of file
+g_code_file.write("\n")
+g_code_file.close()
