@@ -5,6 +5,7 @@ import gcode_lib
 
 # ------------------------------------------------------------------------------
                                                            # drilling parameters
+letter_spacing = 2
 letter_machining_parameters = gcode_lib.default_machining_parameters
 letter_displacement_speeds = gcode_lib.default_displacement_speeds
 
@@ -39,13 +40,36 @@ def build_line_g_code(
     drill_speed = displacement_speeds[gcode_lib.drill_displacement_speed_id]
     bore_speed = displacement_speeds[gcode_lib.drill_bore_speed_id]
     g_code = ''
+                                                                            # h1
+    if line_specification == 'h1' :
+        g_code = gcode_lib.move_steady(
+            0, -8*drill_diameter, 0, drill_speed
+        )
+                                                                            # h2
+    elif line_specification == 'h2' :
+        if lift_for_drill_back :
+            g_code = gcode_lib.move_steady(0, 0, -pass_depth, bore_speed)
+            g_code += gcode_lib.move_fast(0, 3.5*drill_diameter, 0, move_speed)
+            g_code += gcode_lib.move_steady(0, 0, pass_depth, bore_speed)
+        else :
+            g_code = gcode_lib.move_steady(0, 3.5*drill_diameter, 0, drill_speed)
+                                                                            # h3
+    elif line_specification == 'h3' :
+        g_code = gcode_lib.move_steady(
+            3*drill_diameter, 0, 0, drill_speed
+        )
+                                                                            # h4
+    elif line_specification == 'h4' :
+        g_code = gcode_lib.move_steady(
+            0, -3.5*drill_diameter, 0, drill_speed
+        )
                                                                             # t1
-    if line_specification == 't1' :
+    elif line_specification == 't1' :
         g_code = gcode_lib.move_steady(
             2*drill_diameter, 0, 0, drill_speed
         )
                                                                             # t2
-    if line_specification == 't2' :
+    elif line_specification == 't2' :
         if lift_for_drill_back :
             g_code = gcode_lib.move_steady(0, 0, -pass_depth, bore_speed)
             g_code += gcode_lib.move_fast(-drill_diameter, 0, 0, move_speed)
@@ -53,7 +77,7 @@ def build_line_g_code(
         else :
             g_code = gcode_lib.move_steady(-drill_diameter, 0, 0, drill_speed)
                                                                             # t3
-    if line_specification == 't3' :
+    elif line_specification == 't3' :
         if lift_for_drill_back :
             g_code = gcode_lib.move_steady(0, 0, -pass_depth, bore_speed)
             g_code += gcode_lib.move_fast(0, 3*drill_diameter, 0, move_speed)
@@ -61,12 +85,12 @@ def build_line_g_code(
         else :
             g_code = gcode_lib.move_steady(0, 3*drill_diameter, 0, drill_speed)
                                                                             # t4
-    if line_specification == 't4' :
+    elif line_specification == 't4' :
         g_code = gcode_lib.move_steady(
             0, -6.5*drill_diameter, 0, drill_speed
         )
                                                                             # t4
-    if line_specification == 't5' :
+    elif line_specification == 't5' :
         g_code = gcode_lib.circle_arc_gcode(
             1.5*drill_diameter, quarter_circle_facet_nb,
             math.pi, 1.5*math.pi,
@@ -81,10 +105,14 @@ def build_line_set(character) :
     line_set = []
     entry_point = [0, 0]
     exit_point  = [0, 0]
-    if character == 't' :
+    if character == 'h' :
+        line_set = ['h1', 'h2', 'h3', 'h4']
+        entry_point = [0, 8]
+        exit_point  = [0, 0]
+    elif character == 't' :
         line_set = ['t1', 't2', 't3', 't4', 't5']
         entry_point = [0, 5]
-        exit_point  = [2.5, 0]
+        exit_point  = [0, 0]
 
     return(line_set, entry_point, exit_point)
 
@@ -148,7 +176,7 @@ text_g_code += gcode_lib.move_fast(
 )
                                                               # drill characters
 old_exit_point = [0, 0]
-for character in test_string[:1] :
+for character in test_string[:2] :
     print(character)
     (character_g_code, entry_point, exit_point) = build_character_g_code(
         character,
@@ -156,7 +184,7 @@ for character in test_string[:1] :
         lift_for_drill_back
     )
     text_g_code += gcode_lib.move_fast(
-        drill_diameter*(entry_point[0] - old_exit_point[0]),
+        drill_diameter*(entry_point[0] - old_exit_point[0] + letter_spacing),
         drill_diameter*(entry_point[1] - old_exit_point[1]),
         0,
         displacement_speed
