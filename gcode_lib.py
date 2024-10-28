@@ -2,35 +2,16 @@ import math
 
 # ==============================================================================
                                                                 # default values
-default_displacement_height = 10
-default_drill_depth = 10
-default_pass_depth = 1
-default_drill_diameter = 4
-
-default_fast_displacement_speed = 1000
 default_drill_displacement_speed = 300
-default_drill_bore_speed = 500
-                                                                 # values arrays
-displacement_height_id = 0
-drill_depth_id         = 1
-pass_depth_id          = 2
-drill_diameter_id      = 3
-default_machining_parameters = [0 for i in range(drill_diameter_id+1)]
-default_machining_parameters[displacement_height_id] \
-    = default_displacement_height
-default_machining_parameters[drill_depth_id]    = default_drill_depth
-default_machining_parameters[pass_depth_id]     = default_pass_depth
-default_machining_parameters[drill_diameter_id] = default_drill_diameter
-
-fast_displacement_speed_id  = 0
-drill_displacement_speed_id = 1
-drill_bore_speed_id         = 2
-default_displacement_speeds = [0 for i in range(drill_bore_speed_id+1)]
-default_displacement_speeds[fast_displacement_speed_id] \
-    = default_fast_displacement_speed
-default_displacement_speeds[drill_displacement_speed_id] \
-    = default_drill_displacement_speed
-default_displacement_speeds[drill_bore_speed_id] = default_drill_bore_speed
+default_machining_parameters = {
+    'displacement_height'      : 10,
+    'drill_depth'              : 10,
+    'pass_depth'               : 1,
+    'drill_diameter'           : 4,
+    'fast_displacement_speed'  : 1000,
+    'drill_displacement_speed' : default_drill_displacement_speed,
+    'drill_bore_speed'         : 500
+}
 
 # ==============================================================================
                                                                  # basic g-codes
@@ -88,13 +69,13 @@ def set_relative_coordinates(relative=True):
 def move_fast(dx=0, dy=0, dz=0, speed=0):
     g_code = 'G0'
     if dx != 0 :
-        g_code += " X%.3g" % dx
+        g_code += " X%.3f" % dx
     if dy != 0 :
-        g_code += " Y%.3g" % dy
+        g_code += " Y%.3f" % dy
     if dz != 0 :
-        g_code += " Z%.3g" % dz
+        g_code += " Z%.3f" % dz
     if speed != 0 :
-        g_code += " f%d" % speed
+        g_code += " f%g" % speed
 
     if (g_code == 'G0') or g_code.startswith('G0 f') :
         return('')
@@ -106,13 +87,13 @@ def move_fast(dx=0, dy=0, dz=0, speed=0):
 def move_steady(dx=0, dy=0, dz=0, speed=0):
     g_code = 'G1'
     if dx != 0 :
-        g_code += " X%.3g" % dx
+        g_code += " X%.3f" % dx
     if dy != 0 :
-        g_code += " Y%.3g" % dy
+        g_code += " Y%.3f" % dy
     if dz != 0 :
-        g_code += " Z%.3g" % dz
+        g_code += " Z%.3f" % dz
     if speed != 0 :
-        g_code += " f%d" % speed
+        g_code += " f%g" % speed
 
     if (g_code == 'G1') or g_code.startswith('G1 f') :
         return('')
@@ -208,9 +189,9 @@ def polygon_gcode(
 ):
     g_code = ''
                                                                    # drill lines
-    old_x = polygon[0][0]
-    old_y = polygon[0][1]
-    for index in range(1, len(polygon)) :
+    old_x = 0
+    old_y = 0
+    for index in range(len(polygon)) :
         new_x = polygon[index][0]
         new_y = polygon[index][1]
         g_code += move_steady(new_x-old_x, new_y-old_y, 0, speed)
@@ -218,9 +199,7 @@ def polygon_gcode(
         old_y = new_y
                                                                  # close polygon
     if close_shape:
-        new_x = polygon[0][0]
-        new_y = polygon[0][1]
-        g_code += move_steady(new_x-old_x, new_y-old_y, 0, speed)
+        g_code += move_steady(-old_x, -old_y, 0, speed)
 
     return(g_code)
 
@@ -249,6 +228,135 @@ def build_regular_polygon(diameter, facet_nb=64):
         coordinates.append([x, y])
 
     return coordinates
+
+# ..............................................................................
+                                                         # polygon from svg file
+def import_polygon(file_specification, polygon_id, close_path=False):
+                                          # initial coordinate for relative mode
+    coordinates = [[0, 0]]
+                                                                     # read file
+    svg_file = open(file_specification, 'r')
+    svg_data = svg_file.read()
+    svg_file.close()
+                                                          # remove all line ends
+    svg_data = svg_data.replace("\n", '')
+                                                        # remove multiple spaces
+    svg_data = ' '.join(svg_data.split())
+                                                     # separate paths into lines
+    replacements = {'<path ': "\n<path ", '/>': "/>\n"}
+    for (source, replacement) in replacements.items() :
+        svg_data = svg_data.replace(source, replacement)
+                                                            # find selected path
+    polygon_path = ''
+    for path in svg_data.split("\n") :
+        if path.startswith('<path ') :
+            if (" id=\"%s\" " % polygon_id) in path :
+                polygon_path = path
+                                                         # keep only coordinates
+    if polygon_path :
+        polygon_path = polygon_path[polygon_path.find(' d="')+4 :]
+        polygon_path = polygon_path[: polygon_path.find('"')]
+                                                      # loop through description
+        mode = ''
+        command = ''
+        for data in polygon_path.split(' ') :
+            coordinate = ''
+            if len(data) == 1 :
+                command = ''
+                if data == 'm' :
+                    command = 'move to'
+                    mode = 'relative'
+                if data == 'M' :
+                    command = 'move to'
+                    mode = 'absolute'
+                elif data == 'l' :
+                    command = 'line to'
+                    mode = 'relative'
+                elif data == 'L' :
+                    command = 'line to'
+                    mode = 'absolute'
+                elif data == 'h' :
+                    command = 'horizontal line to'
+                    mode = 'relative'
+                elif data == 'H' :
+                    command = 'horizontal line to'
+                    mode = 'absolute'
+                elif data == 'v' :
+                    command = 'vertical line to'
+                    mode = 'relative'
+                elif data == 'V' :
+                    command = 'vertical line to'
+                    mode = 'absolute'
+                elif (data == 'Z') or (data == 'z') :
+                    command = 'close path'
+            else :
+                previous_x_coordinate = coordinates[-1][0]
+                previous_y_coordinate = coordinates[-1][1]
+                if (command == 'move to') or (command == 'line to') :
+                    coordinate = data.split(',')
+                    x_coordinate = float(coordinate[0])
+                    y_coordinate = float(coordinate[1])
+                    if mode == 'relative' :
+                        x_coordinate = previous_x_coordinate + x_coordinate
+                        y_coordinate = previous_y_coordinate + y_coordinate
+                    coordinate = [x_coordinate, y_coordinate]
+                elif command == 'horizontal line to' :
+                    x_coordinate = float(data)
+                    y_coordinate = previous_y_coordinate
+                    if mode == 'relative' :
+                        x_coordinate = previous_x_coordinate + x_coordinate
+                    coordinate = [x_coordinate, y_coordinate]
+                elif command == 'vertical line to' :
+                    x_coordinate = previous_x_coordinate
+                    y_coordinate = float(data)
+                    if mode == 'relative' :
+                        y_coordinate = previous_y_coordinate + y_coordinate
+                    coordinate = [x_coordinate, y_coordinate]
+            if coordinate :
+                coordinates.append([x_coordinate, y_coordinate])
+                                                                 # close polygon
+        if (command == 'close path') and close_path :
+            coordinates.append(coordinates[1])
+                                               # remove first (dummy) coordinate
+    coordinates = coordinates[1:]
+
+    return(coordinates)
+
+# ..............................................................................
+                                          # min and max coordinates of a polygon
+def min_max(polygon):
+    x_min = polygon[0][0]
+    y_min = polygon[0][1]
+    x_max = x_min
+    y_max = y_min
+
+    for coordinate in polygon :
+        [x, y] = coordinate
+        x_min = min(x_min, x)
+        y_min = min(y_min, y)
+        x_max = max(x_max, x)
+        y_max = max(y_max, y)
+
+    return(x_min, y_min, x_max, y_max)
+
+# ..............................................................................
+                     # extract first coordinate of a polygon and offset the rest
+def extract_offset(polygon, close_shape=True):
+                                                  # offsets are first coordinate
+    [x_offset, y_offset] = polygon[0]
+    extracted_polynom = []
+                                                              # take offset away
+    for index in range(len(polygon)) :
+        extracted_polynom.append(
+            [polygon[index][0] - x_offset, polygon[index][1] - y_offset]
+        )
+                                                # remove first (zero) coordinate
+    extracted_polynom = extracted_polynom[1:]
+                                                                   # close shape
+    if close_shape :
+        extracted_polynom.append([0, 0])
+
+    return(x_offset, y_offset, extracted_polynom)
 
 # ..............................................................................
                                      # flip polygon vertically around the x-axis
@@ -316,40 +424,6 @@ def rotate_polygon(polygon, angle):
     return coordinates
 
 # ..............................................................................
-                                 # find hole set for compensating drill diameter
-def find_hole_set(polygon, start_angle=0):
-    holes = []
-
-    for index in range(len(polygon)) :
-        if index > 0 :
-            x_p = polygon[index-1][0]
-            y_p = polygon[index-1][1]
-        else :
-            x_p = polygon[-1][0]
-            y_p = polygon[-1][1]
-        x = polygon[index][0]
-        y = polygon[index][1]
-        if index < len(polygon)-1 :
-            x_n = polygon[index+1][0]
-            y_n = polygon[index+1][1]
-        else :
-            x_n = polygon[0][0]
-            y_n = polygon[0][1]
-        angle_p = math.atan2(y-y_p, x-x_p)
-        angle_n = math.atan2(y_n-y, x_n-x)
-        turn_angle = angle_n - angle_p
-        if turn_angle > math.pi :
-            turn_angle = turn_angle - 2*math.pi
-        if turn_angle < -math.pi :
-            turn_angle = turn_angle + 2*math.pi
-        #print(turn_angle*180/math.pi)
-        if turn_angle < start_angle :
-            #print("%g => [%g, %g]" % (turn_angle*180/math.pi, x, y))
-            holes.append([x, y])
-
-    return holes
-
-# ..............................................................................
                                            # expand polygon by a specified width
      # https://stackoverflow.com/questions/3749678/expand-fill-of-convex-polygon
 def expand_polygon(polygon, distance):
@@ -413,6 +487,40 @@ def expand_polygon(polygon, distance):
     return coordinates
 
 # ..............................................................................
+                                 # find hole set for compensating drill diameter
+def find_hole_set(polygon, start_angle=0):
+    holes = []
+
+    for index in range(len(polygon)) :
+        if index > 0 :
+            x_p = polygon[index-1][0]
+            y_p = polygon[index-1][1]
+        else :
+            x_p = polygon[-1][0]
+            y_p = polygon[-1][1]
+        x = polygon[index][0]
+        y = polygon[index][1]
+        if index < len(polygon)-1 :
+            x_n = polygon[index+1][0]
+            y_n = polygon[index+1][1]
+        else :
+            x_n = polygon[0][0]
+            y_n = polygon[0][1]
+        angle_p = math.atan2(y-y_p, x-x_p)
+        angle_n = math.atan2(y_n-y, x_n-x)
+        turn_angle = angle_n - angle_p
+        if turn_angle > math.pi :
+            turn_angle = turn_angle - 2*math.pi
+        if turn_angle < -math.pi :
+            turn_angle = turn_angle + 2*math.pi
+        #print(turn_angle*180/math.pi)
+        if turn_angle < start_angle :
+            #print("%g => [%g, %g]" % (turn_angle*180/math.pi, x, y))
+            holes.append([x, y])
+
+    return holes
+
+# ..............................................................................
                                     # find if a coordinate is between two others
 def are_in_row(x1, x, x2):
     x_is_between = False
@@ -447,11 +555,11 @@ def segment_polygon_intersection(segment, polygon):
                                             # special case of horizontal segment
 # not tested yet
     elif y1 == y2 :
-        print("y1 = y2 = %g" % y1)
+#        print("y1 = y2 = %g" % y1)
         for index in range(len(polygon)-1) :
             [x_a, y_a] = polygon[index]
             [x_b, y_b] = polygon[index+1]
-            print([x_a, y_a])
+#            print([x_a, y_a])
             if are_in_row(y_a, y1, y_b) :
                            # very special case of a horizontal-vertical crossing
                 if x_a == x_b :
@@ -503,12 +611,11 @@ def segment_polygon_intersection(segment, polygon):
 def go_to_start(
     start_x=0, start_y=0,
     machining_parameters=default_machining_parameters,
-    displacement_speeds=default_displacement_speeds,
     init_X_Carve = False
 ):
-    displacement_height = machining_parameters[displacement_height_id]
-    fast_displacement_speed  = displacement_speeds[fast_displacement_speed_id]
-    drill_displacement_speed = displacement_speeds[drill_displacement_speed_id]
+    displacement_height      = machining_parameters['displacement_height']
+    fast_displacement_speed  = machining_parameters['fast_displacement_speed']
+    drill_displacement_speed = machining_parameters['drill_displacement_speed']
 
     g_code = ";\n; initialization\n;\n"
     g_code += set_units_to_millimeters()
@@ -530,15 +637,14 @@ def build_drawing_element(
     drill_g_code,
     start_x=0, start_y=0,
     machining_parameters=default_machining_parameters,
-    displacement_speeds=default_displacement_speeds,
     comment=''
 ):
-    displacement_height = machining_parameters[displacement_height_id]
-    drill_depth         = machining_parameters[drill_depth_id]
-    pass_depth          = machining_parameters[pass_depth_id]
-    drill_diameter      = machining_parameters[drill_diameter_id]
-    fast_displacement_speed = displacement_speeds[fast_displacement_speed_id]
-    drill_bore_speed        = displacement_speeds[drill_bore_speed_id]
+    displacement_height     = machining_parameters['displacement_height']
+    drill_depth             = machining_parameters['drill_depth']
+    pass_depth              = machining_parameters['pass_depth']
+    drill_diameter          = machining_parameters['drill_diameter']
+    fast_displacement_speed = machining_parameters['fast_displacement_speed']
+    drill_bore_speed        = machining_parameters['drill_bore_speed']
     g_code = ''
                                                                    # add comment
     if comment != '' :
@@ -577,14 +683,14 @@ def build_drawing_element(
 def build_hole_set(
     hole_set,
     machining_parameters=default_machining_parameters,
-    displacement_speeds=default_displacement_speeds,
     comment=''
 ):
-    displacement_height = machining_parameters[displacement_height_id]
-    drill_depth         = machining_parameters[drill_depth_id]
-    drill_diameter      = machining_parameters[drill_diameter_id]
-    fast_displacement_speed = displacement_speeds[fast_displacement_speed_id]
-    drill_bore_speed        = displacement_speeds[drill_bore_speed_id]
+    displacement_height     = machining_parameters['displacement_height']
+    drill_depth             = machining_parameters['drill_depth']
+    drill_diameter          = machining_parameters['drill_diameter']
+    fast_displacement_speed = machining_parameters['fast_displacement_speed']
+    drill_bore_speed        = machining_parameters['drill_bore_speed']
+
     g_code = ''
                                                                    # add comment
     if comment != '' :
@@ -614,16 +720,16 @@ def build_slit_set(
     start_x=0, start_y=0,
     dx=0, dy=0, x_spacing=0, y_spacing=0, slit_nb=1,
     machining_parameters=default_machining_parameters,
-    displacement_speeds=default_displacement_speeds,
     comment=''
 ):
-    displacement_height = machining_parameters[displacement_height_id]
-    drill_depth         = machining_parameters[drill_depth_id]
-    pass_depth          = machining_parameters[pass_depth_id]
-    drill_diameter      = machining_parameters[drill_diameter_id]
-    fast_displacement_speed  = displacement_speeds[fast_displacement_speed_id]
-    drill_displacement_speed = displacement_speeds[drill_displacement_speed_id]
-    drill_bore_speed         = displacement_speeds[drill_bore_speed_id]
+    displacement_height      = machining_parameters['displacement_height']
+    drill_depth              = machining_parameters['drill_depth']
+    pass_depth               = machining_parameters['pass_depth']
+    drill_diameter           = machining_parameters['drill_diameter']
+    fast_displacement_speed  = machining_parameters['fast_displacement_speed']
+    drill_displacement_speed = machining_parameters['drill_displacement_speed']
+    drill_bore_speed         = machining_parameters['drill_bore_speed']
+
     g_code = ''
                                                                    # add comment
     if comment != '' :

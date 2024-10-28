@@ -7,22 +7,14 @@ sys.path.append(parent_dir)
 import gcode_lib
 
 # ------------------------------------------------------------------------------
-                                                           # drilling parameters
-drill_diameter = 4
-pass_depth = 1
-displacement_height = 15
-fast_displacement_speed = 1000
-drill_displacement_speed = 100
-drill_bore_speed = 200
-
-# ------------------------------------------------------------------------------
                                                                       # geometry
 box_length = 210
 box_width  = 142
 box_height  = 80
 
+drill_diameter = 4
 board_thickness = 6
-board_drill_depth = board_thickness + 2
+board_drill_depth = board_thickness + 1
 
 back_board_length   = box_length
 back_board_width    = box_height - 2*board_thickness
@@ -55,6 +47,20 @@ banana_plugs_x_spacing = 25
 banana_plugs_y_spacing = 25
 
 # ------------------------------------------------------------------------------
+                                                           # drilling parameters
+machining_parameters = {
+    'displacement_height'      : 10,
+    'drill_depth'              : board_drill_depth,
+    'pass_depth'               : 1,
+    'drill_diameter'           : drill_diameter,
+    'fast_displacement_speed'  : 1000,
+    'drill_displacement_speed' : 100,
+    'drill_bore_speed'         : 200
+}
+fast_displacement_speed  = machining_parameters['fast_displacement_speed']
+drill_displacement_speed = machining_parameters['drill_displacement_speed']
+
+# ------------------------------------------------------------------------------
                                                                      # file spec
 (g_code_file_path, g_code_file_name) = os.path.split(__file__)
 g_code_file_path = g_code_file_path.rstrip('./')
@@ -65,21 +71,6 @@ g_code_file_name = g_code_file_path + os.sep + design_name + '.gcode'
                                                                        # display
 INDENT = 2 * ' '
 
-# ------------------------------------------------------------------------------
-                                                                 # packed values
-machining_parameters = [
-    displacement_height,
-    board_drill_depth,
-    pass_depth,
-    drill_diameter
-]
-
-displacement_speeds = [
-    fast_displacement_speed,
-    drill_displacement_speed,
-    drill_bore_speed
-]
-
 # ==============================================================================
                                                                    # main script
 print('Building g-codes for the roomAmp bottom, back or top plate')
@@ -88,7 +79,6 @@ print(INDENT + "Writing \"%s\"" % g_code_file_name)
 g_code_file = open(g_code_file_name, "w")
 g_code_file.write(gcode_lib.go_to_start(
     machining_parameters=machining_parameters,
-    displacement_speeds=displacement_speeds
 ))
                                                                 # back to origin
 g_code_file.write(gcode_lib.move_back_to_origin())
@@ -119,7 +109,7 @@ back_fixing_holes = gcode_lib.build_retangle(
                                                                   # holes g-code
 g_code_file.write(gcode_lib.build_hole_set(
     back_fixing_holes,
-    machining_parameters, displacement_speeds,
+    machining_parameters,
     "\n; %s\n;" % comment
 ))
                                                                 # back to origin
@@ -140,7 +130,7 @@ g_code_file.write(gcode_lib.build_drawing_element(
     ),
     rpi_slit_x_offset + drill_diameter/2,
     rpi_slit_y_offset + drill_diameter/2,
-    machining_parameters, displacement_speeds,
+    machining_parameters,
     comment
 ))
                                                                 # back to origin
@@ -156,7 +146,7 @@ g_code_file.write(gcode_lib.build_drawing_element(
     ),
     power_supply_slit_x_offset + drill_diameter/2,
     power_supply_slit_y_offset + drill_diameter/2,
-    machining_parameters, displacement_speeds,
+    machining_parameters,
     comment
 ))
                                                                 # back to origin
@@ -167,7 +157,8 @@ print(2*INDENT + comment)
 g_code_file.write(gcode_lib.move_fast(
     banana_plugs_x_offset + drill_diameter/2,
     banana_plugs_y_offset + drill_diameter/2,
-    0
+    0,
+    fast_displacement_speed
 ))
 for y_index in range(banana_plugs_y_nb) :
     for x_index in range(banana_plugs_x_nb) :
@@ -177,7 +168,7 @@ for y_index in range(banana_plugs_y_nb) :
                 banana_plugs_diameter
             ),
             0, 0,
-            machining_parameters, displacement_speeds,
+            machining_parameters,
             comment
         ))
         if x_index < banana_plugs_x_nb - 1 :
@@ -199,7 +190,7 @@ print(INDENT + comment)
 g_code_file.write(gcode_lib.build_slit_set(
     -drill_diameter/2, back_board_width + drill_diameter/2,
     back_board_length + drill_diameter, 0, 0, 0, 1,
-    machining_parameters, displacement_speeds,
+    machining_parameters,
     "\n; %s\n;" % comment
 ))
                                                                 # back to origin
