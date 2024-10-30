@@ -9,7 +9,7 @@ import text_lib
 
 # ------------------------------------------------------------------------------
                                                                    # test string
-test_string = 'the quick brown fox jumps over the lazy dog'
+pangram = 'the quick brown fox jumps over the lazy dog'
 lift_for_drill_back = False
 
 # ------------------------------------------------------------------------------
@@ -47,7 +47,23 @@ comment = 'lowercase text'
 g_code_file.write(";\n; %s\n;\n" % comment)
 print(INDENT + comment)
 g_code_file.write(text_lib.line_g_code(
-    test_string, machining_parameters, lift_for_drill_back
+    pangram, machining_parameters, lift_for_drill_back
+))
+                                                                # back to origin
+g_code_file.write(gcode_lib.move_back_to_origin())
+
+# ------------------------------------------------------------------------------
+                                                                # uppercase text
+comment = 'uppercase text'
+g_code_file.write(";\n; %s\n;\n" % comment)
+print(INDENT + comment)
+g_code_file.write(gcode_lib.move_fast(
+    0, 3*text_lib.lc_letter_height*machining_parameters['drill_diameter'], 0,
+    machining_parameters['fast_displacement_speed']
+))
+pangram = 'the quick Brown fox jumps over the lAzy dog'
+g_code_file.write(text_lib.line_g_code(
+    pangram, machining_parameters, lift_for_drill_back
 ))
                                                                 # back to origin
 g_code_file.write(gcode_lib.move_back_to_origin())

@@ -9,10 +9,14 @@ drill_diameter = 2
 letter_spacing = 2
 space_spacing = 4
 
-letter_width = 3
-letter_height = 5
-lc_circle_radius = letter_width/2
-small_circle_radius = letter_width/3
+lc_letter_width = 3
+lc_letter_height = 5
+lc_circle_radius = lc_letter_width/2
+small_circle_radius = lc_letter_width/3
+
+uc_letter_width = 4
+uc_letter_height = 8
+uc_circle_radius = uc_letter_width/2
 
 LIFT_UP = True
 
@@ -619,6 +623,63 @@ def build_line_g_code(
     elif line_specification == 'z3' :
         g_code = move_horizontal(3, machining_parameters)                                                                # v1
 
+    # ..........................................................................
+                                                                            # A1
+    elif line_specification == 'A1' :
+        g_code = move_diagonal(
+            uc_letter_width/2, uc_letter_height, machining_parameters
+        )
+                                                                            # A2
+    elif line_specification == 'A2' :
+        g_code = move_diagonal(
+            uc_letter_width/2, -uc_letter_height, machining_parameters
+        )
+                                                                            # A3
+    elif line_specification == 'A3' :
+        g_code = move_back_diagonal(
+            -1*uc_letter_width/uc_letter_height, 2,
+            machining_parameters, lift_for_drill_back
+        )
+                                                                            # A4
+    elif line_specification == 'A4' :
+        g_code = move_horizontal(
+            -uc_letter_width + 2*uc_letter_width/uc_letter_height,
+            machining_parameters
+        )
+                                                                            # B1
+    elif line_specification == 'B1' :
+        g_code = move_horizontal(
+            uc_letter_width - uc_circle_radius, machining_parameters
+        )
+                                                                            # B2
+    elif line_specification == 'B2' :
+        g_code = move_arc(
+            -math.pi/2, math.pi/2,
+            machining_parameters, uc_circle_radius
+        )
+                                                                            # B3
+    elif line_specification == 'B3' :
+        g_code = move_horizontal(
+            -(uc_letter_width - uc_circle_radius), machining_parameters
+        )
+                                                                            # B4
+    elif line_specification == 'B4' :
+        g_code = move_vertical(
+            -uc_letter_height,
+            machining_parameters
+        )
+                                                                            # B5
+    elif line_specification == 'B5' :
+        g_code = move_horizontal(
+            uc_letter_width - uc_circle_radius, machining_parameters
+        )
+                                                                            # B6
+    elif line_specification == 'B6' :
+        g_code = move_arc(
+            -math.pi/2, math.pi/2,
+            machining_parameters, uc_circle_radius
+        )
+
     return(g_code)
 
 # ..............................................................................
@@ -644,7 +705,7 @@ def build_line_set(character) :
     elif character == 'c' :
         line_set    = ['c1', 'c2', 'c3']
         entry_point = [
-            letter_width - short_circle_final_x_offset,
+            lc_letter_width - short_circle_final_x_offset,
             3.5 + short_circle_final_y_offset
         ]
         exit_point  = [
@@ -654,7 +715,7 @@ def build_line_set(character) :
                                                                              # d
     elif character == 'd' :
         line_set    = ['d1', 'd2', 'd3', 'd4', 'd5']
-        entry_point = [letter_width, 3.5]
+        entry_point = [lc_letter_width, 3.5]
         exit_point  = [0, 8]
                                                                              # e
     elif character == 'e' :
@@ -668,11 +729,11 @@ def build_line_set(character) :
     elif character == 'f' :
         line_set    = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6']
         entry_point = [0, 0]
-        exit_point  = [0, letter_height]
+        exit_point  = [0, lc_letter_height]
                                                                              # g
     elif character == 'g' :
         line_set    = ['g1', 'g2', 'g3', 'g4', 'g5', 'g6']
-        entry_point = [letter_width, 3.5]
+        entry_point = [lc_letter_width, 3.5]
         exit_point  = [
             -2*lc_circle_radius + short_circle_final_x_offset,
             -1.5 - short_circle_final_y_offset
@@ -716,53 +777,53 @@ def build_line_set(character) :
     elif character == 'o' :
         line_set    = ['o1', 'o2', 'o3', 'o4']
         entry_point = [0, 1.5]
-        exit_point  = [-letter_width, lc_circle_radius]
+        exit_point  = [-lc_letter_width, lc_circle_radius]
                                                                              # p
     elif character == 'p' :
         line_set    = ['p1', 'p2', 'p3', 'p4', 'p5']
         entry_point = [0, -3]
-        exit_point  = [-letter_width, lc_circle_radius]
+        exit_point  = [-lc_letter_width, lc_circle_radius]
                                                                              # q
     elif character == 'q' :
         line_set    = ['q1', 'q2', 'q3', 'q4', 'q5']
-        entry_point = [letter_width, 3.5]
+        entry_point = [lc_letter_width, 3.5]
         exit_point  = [0, -3]
                                                                              # r
     elif character == 'r' :
         line_set    = ['r1', 'r2', 'r3', 'r4']
         entry_point = [0, 0]
-        exit_point  = [0, letter_height]
+        exit_point  = [0, lc_letter_height]
                                                                              # s
     elif character == 's' :
         line_set    = ['s1', 's2', 's3', 's4', 's5']
         entry_point = [
-            letter_width - short_circle_final_x_offset,
+            lc_letter_width - short_circle_final_x_offset,
             3.5 + short_circle_final_y_offset
         ]
         exit_point  = [
-            -letter_width + short_circle_final_x_offset,
+            -lc_letter_width + short_circle_final_x_offset,
             lc_circle_radius - short_circle_final_y_offset
         ]
                                                                              # t
     elif character == 't' :
         line_set    = ['t1', 't2', 't3', 't4', 't5']
-        entry_point = [0, letter_height]
+        entry_point = [0, lc_letter_height]
         exit_point  = [0, 0]
                                                                              # u
     elif character == 'u' :
         line_set    = ['u1', 'u2', 'u3', 'u4']
-        entry_point = [0, letter_height]
-        exit_point  = [0, letter_height]
+        entry_point = [0, lc_letter_height]
+        exit_point  = [0, lc_letter_height]
                                                                              # v
     elif character == 'v' :
         line_set    = ['v1', 'v2']
-        entry_point = [0, letter_height]
-        exit_point  = [0, letter_height]
+        entry_point = [0, lc_letter_height]
+        exit_point  = [0, lc_letter_height]
                                                                              # w
     elif character == 'w' :
         line_set    = ['w1', 'w2', 'w3', 'w4']
-        entry_point = [0, letter_height]
-        exit_point  = [0, letter_height]
+        entry_point = [0, lc_letter_height]
+        exit_point  = [0, lc_letter_height]
                                                                              # x
     elif character == 'x' :
         line_set    = ['x1', 'x2', 'x3', 'x4']
@@ -771,13 +832,28 @@ def build_line_set(character) :
                                                                              # y
     elif character == 'y' :
         line_set    = ['y1', 'y2', 'y3']
-        entry_point = [0, letter_height]
+        entry_point = [0, lc_letter_height]
         exit_point  = [-8/5*1.5, -3]
                                                                              # z
     elif character == 'z' :
         line_set    = ['z1', 'z2', 'z3']
-        entry_point = [0, letter_height]
+        entry_point = [0, lc_letter_height]
         exit_point  = [0, 0]
+
+    # ..........................................................................
+                                                                             # A
+    if character == 'A' :
+        line_set    = ['A1', 'A2', 'A3', 'A4']
+        entry_point = [0, 0]
+        exit_point  = [
+            -uc_letter_width + 1*uc_letter_width/uc_letter_height,
+            2
+        ]
+                                                                             # B
+    if character == 'B' :
+        line_set    = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6']
+        entry_point = [0, uc_letter_height/2]
+        exit_point  = [-uc_circle_radius, uc_letter_height/2]
 
     return(line_set, entry_point, exit_point)
 
