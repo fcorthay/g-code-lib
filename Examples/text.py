@@ -61,7 +61,7 @@ g_code_file.write(gcode_lib.move_fast(
     0, 3*text_lib.lc_letter_height*machining_parameters['drill_diameter'], 0,
     machining_parameters['fast_displacement_speed']
 ))
-pangram = 'the quick Brown fox jumps over the lAzy dog'
+pangram = pangram.upper()
 g_code_file.write(text_lib.line_g_code(
     pangram, machining_parameters, lift_for_drill_back
 ))

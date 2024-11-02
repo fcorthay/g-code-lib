@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import math
+import re
 import gcode_lib
 
 # ------------------------------------------------------------------------------
@@ -570,25 +571,25 @@ def build_line_g_code(
         g_code = move_vertical(5, machining_parameters)
                                                                             # v1
     elif line_specification == 'v1' :
-        g_code = move_diagonal(1.5, -5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, -5, machining_parameters)
                                                                             # v2
     elif line_specification == 'v2' :
-        g_code = move_diagonal(1.5, 5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, 5, machining_parameters)
                                                                             # w1
     elif line_specification == 'w1' :
-        g_code = move_diagonal(1.5, -5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, -5, machining_parameters)
                                                                             # w2
     elif line_specification == 'w2' :
-        g_code = move_diagonal(1.5, 5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, 5, machining_parameters)
                                                                             # w3
     elif line_specification == 'w3' :
-        g_code = move_diagonal(1.5, -5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, -5, machining_parameters)
                                                                             # w4
     elif line_specification == 'w4' :
-        g_code = move_diagonal(1.5, 5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, 5, machining_parameters)
                                                                             # x1
     elif line_specification == 'x1' :
-        g_code = move_diagonal(3, 5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(3, 5, machining_parameters)
                                                                             # x2
     elif line_specification == 'x2' :
         g_code = move_back_diagonal(
@@ -601,10 +602,10 @@ def build_line_g_code(
         )
                                                                             # x4
     elif line_specification == 'x4' :
-        g_code = move_diagonal(3, -5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(3, -5, machining_parameters)
                                                                             # y1
     elif line_specification == 'y1' :
-        g_code = move_diagonal(1.5, -5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(1.5, -5, machining_parameters)
                                                                             # y2
     elif line_specification == 'y2' :
         g_code = move_back_diagonal(
@@ -612,17 +613,17 @@ def build_line_g_code(
         )
                                                                             # y3
     elif line_specification == 'y3' :
-        g_code = move_diagonal(-8/5*1.5, -8, machining_parameters)                                                                # v1
+        g_code = move_diagonal(-8/5*1.5, -8, machining_parameters)
                                                                             # z1
     elif line_specification == 'z1' :
-        g_code = move_horizontal(3, machining_parameters)                                                                # v1
+        g_code = move_horizontal(3, machining_parameters)
                                                                             # z2
     elif line_specification == 'z2' :
-        g_code = move_diagonal(-3, -5, machining_parameters)                                                                # v1
+        g_code = move_diagonal(-3, -5, machining_parameters)
                                                                             # z3
     elif line_specification == 'z3' :
-        g_code = move_horizontal(3, machining_parameters)                                                                # v1
-
+        g_code = move_horizontal(3, machining_parameters)
+        
     # ..........................................................................
                                                                             # A1
     elif line_specification == 'A1' :
@@ -816,50 +817,107 @@ def build_line_set(character) :
         exit_point  = [0, lc_letter_height]
                                                                              # v
     elif character == 'v' :
-        line_set    = ['v1', 'v2']
-        entry_point = [0, lc_letter_height]
-        exit_point  = [0, lc_letter_height]
+        line_set    = 'm 0 5 l 1.5 -5 l 1.5 5'
                                                                              # w
     elif character == 'w' :
-        line_set    = ['w1', 'w2', 'w3', 'w4']
-        entry_point = [0, lc_letter_height]
-        exit_point  = [0, lc_letter_height]
+        line_set    = 'm 0 5 l 1.5 -5 l 1.5 5 l 1.5 -5 l 1.5 5'
                                                                              # x
     elif character == 'x' :
-        line_set    = ['x1', 'x2', 'x3', 'x4']
-        entry_point = [0, 0]
-        exit_point  = [0, 0]
+        line_set    = 'l 3 5 m -1.5 -2.5 m -1.5 2.5 l 3 -5'
                                                                              # y
     elif character == 'y' :
-        line_set    = ['y1', 'y2', 'y3']
-        entry_point = [0, lc_letter_height]
-        exit_point  = [-8/5*1.5, -3]
+        line_set    = 'm 0 5 l 1.5 -5 m 1.5 5 l -2.4 -8'
                                                                              # z
     elif character == 'z' :
-        line_set    = ['z1', 'z2', 'z3']
-        entry_point = [0, lc_letter_height]
-        exit_point  = [0, 0]
+        line_set    = 'm 0 5 h 3 l -3 -5 h 3'
 
     # ..........................................................................
                                                                              # A
     if character == 'A' :
-        line_set    = ['A1', 'A2', 'A3', 'A4']
-        entry_point = [0, 0]
-        exit_point  = [
-            -uc_letter_width + 1*uc_letter_width/uc_letter_height,
-            2
-        ]
+        line_set    = 'l 2 8 l 2 -8 m -0.5 2 h -3'
                                                                              # B
     if character == 'B' :
         line_set    = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6']
         entry_point = [0, uc_letter_height/2]
         exit_point  = [-uc_circle_radius, uc_letter_height/2]
+                                                                             # V
+    elif character == 'V' :
+        line_set    = 'm 0 8 l 2 -8 l 2 8'
+                                                                             # W
+    elif character == 'W' :
+        line_set    = 'm 0 8 l 2 -8 l 2 8 l 2 -8 l 2 8'
+                                                                             # X
+    elif character == 'X' :
+        line_set    = 'l 4 8 m -2 -4 m -2 4 l 4 -8'
+                                                                             # Y
+    elif character == 'Y' :
+        line_set    = 'm 0 8 l 2 -4 l 2 4 m -2 -4 v -4'
+                                                                             # Z
+    elif character == 'Z' :
+        line_set    = 'm 0 8 h 4 l -4 -8 h 4'
 
     return(line_set, entry_point, exit_point)
 
 # ..............................................................................
                                                     # g-code set for a character
-def character_g_code(
+def line_set_to_gcode(
+    line_set,
+    machining_parameters=letter_machining_parameters,
+    lift_for_drill_back=False
+) :
+    entry_point = [0, 0]
+    max_x = 0
+    exit_point_x = 0
+    exit_point_y = 0
+    exit_point = [0, 0]
+    g_code = ''
+                                                             # split to commands
+    commands = re.findall(r'[a-zA-Z]', line_set)
+    parameters = re.split(r'\s*[a-zA-Z]\s*', line_set)[1:]
+                                                            # interpret commands
+    for index in range(len(commands)) :
+        command = commands[index]
+        parameter_list = re.split(r'\s+', parameters[index])
+        delta_x = 0
+        delta_y = 0
+        if (index == 0) and (command == 'm') :
+            delta_x = float(parameter_list[0])
+            delta_y = float(parameter_list[1])
+            entry_point = [delta_x, delta_y]
+        else :
+            if command == 'h' :
+                delta_x = float(parameter_list[0])
+                g_code += move_horizontal(delta_x, machining_parameters)
+            elif command == 'v' :
+                delta_y = float(parameter_list[0])
+                g_code += move_vertical(delta_y, machining_parameters)
+            elif command == 'l' :
+                delta_x = float(parameter_list[0])
+                delta_y = float(parameter_list[1])
+                g_code += move_diagonal(delta_x, delta_y, machining_parameters)
+            elif command == 'm' :
+                if (index > 0) and (commands[index-1] != 'm') :
+                    if lift_for_drill_back :
+                        g_code += lift_drill(LIFT_UP, machining_parameters)
+                delta_x = float(parameter_list[0])
+                delta_y = float(parameter_list[1])
+                g_code += move_diagonal(delta_x, delta_y, machining_parameters)
+                if (index-1 < len(commands)) and (commands[index+1] != 'm') :
+                    if lift_for_drill_back :
+                        g_code += lift_drill(not LIFT_UP, machining_parameters)
+                                                             # update exit point
+        exit_point_x = exit_point_x + delta_x
+        exit_point_y = exit_point_y + delta_y
+        if exit_point_x > max_x :
+            max_x = exit_point_x
+                                                                    # exit point
+    exit_point = [exit_point_x - max_x, exit_point_y]
+
+    return(g_code, entry_point, exit_point)
+
+# ..............................................................................
+                                                    # g-code set for a character
+def character_data(
     character,
     machining_parameters=letter_machining_parameters,
     lift_for_drill_back=False
@@ -872,12 +930,23 @@ def character_g_code(
     g_code += gcode_lib.move_steady(0, 0, -pass_depth, bore_speed)
                                                                    # drill lines
     (line_set, entry_point, exit_point) = build_line_set(character)
-    for line in line_set :
-        g_code += build_line_g_code(
-            line,
-            letter_machining_parameters,
-            lift_for_drill_back
+    if type(line_set) is str :
+        (character_g_code, entry_point, exit_point) = line_set_to_gcode(
+            line_set, machining_parameters, lift_for_drill_back
         )
+        if character == 'V' :
+            print(character + ' :')
+            print(character_g_code)
+            print('entry : ' + repr(entry_point))
+            print('exit : ' + repr(exit_point))
+        g_code += character_g_code
+    else :
+        for line in line_set :
+            g_code += build_line_g_code(
+                line,
+                letter_machining_parameters,
+                lift_for_drill_back
+            )
                                                                   # dive back up
     g_code += gcode_lib.move_steady(0, 0, pass_depth, bore_speed)
 
@@ -904,7 +973,7 @@ def line_g_code(
                 - (space_spacing - letter_spacing)
         else :
                                                             # get character data
-            (char_g_code, entry_point, exit_point) = character_g_code(
+            (char_g_code, entry_point, exit_point) = character_data(
                 character,
                 letter_machining_parameters,
                 lift_for_drill_back
