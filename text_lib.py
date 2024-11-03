@@ -31,7 +31,7 @@ move_speed  = letter_machining_parameters['fast_displacement_speed']
 drill_speed = letter_machining_parameters['drill_displacement_speed']
 bore_speed  = letter_machining_parameters['drill_bore_speed']
 
-half_circle_facet_nb = 8
+half_circle_facet_nb = 16
 quarter_circle_facet_nb = round(half_circle_facet_nb/2)
 short_circle_final_y_offset = 1/2
 short_circle_angle_takeback = math.atan2(
@@ -143,6 +143,22 @@ def move_back_vertical(
 # ..............................................................................
                                                                 # usual size arc
 def move_arc(
+    radius,
+    start_angle, end_angle,
+    machining_parameters=letter_machining_parameters,
+    facet_nb=half_circle_facet_nb
+) :
+    g_code = gcode_lib.circle_arc_gcode(
+        radius*machining_parameters['drill_diameter'], facet_nb,
+        start_angle, end_angle,
+        machining_parameters['drill_displacement_speed']
+    )
+
+    return (g_code)
+
+# ..............................................................................
+                                                                # usual size arc
+def move_arc_2(
     start_angle, end_angle,
     machining_parameters=letter_machining_parameters,
     radius=lc_circle_radius,
@@ -164,7 +180,7 @@ def move_quarter_arc(
     radius=lc_circle_radius,
     facet_nb=quarter_circle_facet_nb
 ) :
-    g_code = move_arc(
+    g_code = move_arc_2(
         start_angle, end_angle,
         machining_parameters,
         radius, facet_nb
@@ -180,7 +196,7 @@ def move_small_quarter_arc(
     radius=small_circle_radius,
     facet_nb=quarter_circle_facet_nb
 ) :
-    g_code = move_arc(
+    g_code = move_arc_2(
         start_angle, end_angle,
         machining_parameters,
         radius, facet_nb
@@ -203,7 +219,7 @@ def build_line_g_code(
     g_code = ''
                                                                             # a1
     if line_specification == 'a1' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             math.pi - short_circle_angle_takeback, 0, machining_parameters
         )
                                                                             # a2
@@ -216,7 +232,7 @@ def build_line_g_code(
         )
                                                                             # a4
     elif line_specification == 'a4' :
-        g_code = move_arc(2*math.pi, math.pi, machining_parameters)
+        g_code = move_arc_2(2*math.pi, math.pi, machining_parameters)
                                                                             # a5
     elif line_specification == 'a5' :
         g_code = move_small_quarter_arc(
@@ -235,16 +251,16 @@ def build_line_g_code(
         )
                                                                             # b3
     elif line_specification == 'b3' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # b4
     elif line_specification == 'b4' :
         g_code = move_vertical(-2, machining_parameters)
                                                                             # b5
     elif line_specification == 'b5' :
-        g_code = move_arc(2*math.pi, math.pi, machining_parameters)
+        g_code = move_arc_2(2*math.pi, math.pi, machining_parameters)
                                                                             # c1
     elif line_specification == 'c1' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             short_circle_angle_takeback, math.pi, machining_parameters
         )
                                                                             # c2
@@ -252,13 +268,13 @@ def build_line_g_code(
         g_code = move_vertical(-2, machining_parameters)
                                                                             # c3
     elif line_specification == 'c3' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             math.pi, 2*math.pi - short_circle_angle_takeback,
             machining_parameters
         )
                                                                             # d1
     elif line_specification == 'd1' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             0, math.pi, machining_parameters
         )
                                                                             # d2
@@ -266,7 +282,7 @@ def build_line_g_code(
         g_code = move_vertical(-2, machining_parameters)
                                                                             # d3
     elif line_specification == 'd3' :
-        g_code = move_arc(math.pi, 2*math.pi, machining_parameters)
+        g_code = move_arc_2(math.pi, 2*math.pi, machining_parameters)
                                                                             # d4
     elif line_specification == 'd4' :
         g_code = move_back_vertical(
@@ -283,13 +299,13 @@ def build_line_g_code(
         g_code = move_vertical(1, machining_parameters)
                                                                             # e3
     elif line_specification == 'e3' :
-        g_code = move_arc(0, math.pi, machining_parameters)
+        g_code = move_arc_2(0, math.pi, machining_parameters)
                                                                             # e4
     elif line_specification == 'e4' :
         g_code = move_vertical(-2, machining_parameters)
                                                                             # e5
     elif line_specification == 'e5' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             math.pi, 2*math.pi - short_circle_angle_takeback,
             machining_parameters
         )
@@ -325,13 +341,13 @@ def build_line_g_code(
         g_code = move_horizontal(3, machining_parameters)
                                                                             # g1
     elif line_specification == 'g1' :
-        g_code = move_arc(0, math.pi, machining_parameters)
+        g_code = move_arc_2(0, math.pi, machining_parameters)
                                                                             # g2
     elif line_specification == 'g2' :
         g_code = move_vertical(-2, machining_parameters)
                                                                             # g3
     elif line_specification == 'g3' :
-        g_code = move_arc(math.pi, 2*math.pi, machining_parameters)
+        g_code = move_arc_2(math.pi, 2*math.pi, machining_parameters)
                                                                             # g4
     elif line_specification == 'g4' :
         g_code = move_back_vertical(
@@ -342,7 +358,7 @@ def build_line_g_code(
         g_code = move_vertical(-6.5, machining_parameters)
                                                                             # g6
     elif line_specification == 'g6' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             2*math.pi, math.pi + short_circle_angle_takeback,
             machining_parameters
         )
@@ -356,7 +372,7 @@ def build_line_g_code(
         )
                                                                             # h3
     elif line_specification == 'h3' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # h4
     elif line_specification == 'h4' :
         g_code = move_vertical(-3.5, machining_parameters)
@@ -373,7 +389,7 @@ def build_line_g_code(
         g_code += lift_drill(not LIFT_UP, temp_machining_parameters)
                                                                             # j1
     elif line_specification == 'j1' :
-        g_code = move_arc(1.5*math.pi, 2*math.pi, machining_parameters)
+        g_code = move_arc_2(1.5*math.pi, 2*math.pi, machining_parameters)
                                                                             # j2
     elif line_specification == 'j2' :
         g_code = move_vertical(6.5, machining_parameters)
@@ -421,7 +437,7 @@ def build_line_g_code(
         )
                                                                             # m3
     elif line_specification == 'm3' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # m4
     elif line_specification == 'm4' :
         g_code = move_vertical(-3.5, machining_parameters)
@@ -432,7 +448,7 @@ def build_line_g_code(
         )
                                                                             # m6
     elif line_specification == 'm6' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # m7
     elif line_specification == 'm7' :
         g_code = move_vertical(-3.5, machining_parameters)
@@ -446,7 +462,7 @@ def build_line_g_code(
         )
                                                                             # n3
     elif line_specification == 'n3' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # n4
     elif line_specification == 'n4' :
         g_code = move_vertical(-3.5, machining_parameters)
@@ -455,13 +471,13 @@ def build_line_g_code(
         g_code = move_vertical(2, machining_parameters)
                                                                             # o2
     elif line_specification == 'o2' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # o3
     elif line_specification == 'o3' :
         g_code = move_vertical(-2, machining_parameters)
                                                                             # o4
     elif line_specification == 'o4' :
-        g_code = move_arc(2*math.pi, math.pi, machining_parameters)
+        g_code = move_arc_2(2*math.pi, math.pi, machining_parameters)
                                                                             # p1
     elif line_specification == 'p1' :
         g_code = move_vertical(8, machining_parameters)
@@ -472,22 +488,22 @@ def build_line_g_code(
         )
                                                                             # p3
     elif line_specification == 'p3' :
-        g_code = move_arc(math.pi, 0, machining_parameters)
+        g_code = move_arc_2(math.pi, 0, machining_parameters)
                                                                             # p4
     elif line_specification == 'p4' :
         g_code = move_vertical(-2, machining_parameters)
                                                                             # p5
     elif line_specification == 'p5' :
-        g_code = move_arc(2*math.pi, math.pi, machining_parameters)
+        g_code = move_arc_2(2*math.pi, math.pi, machining_parameters)
                                                                             # q1
     elif line_specification == 'q1' :
-        g_code = move_arc(0, math.pi, machining_parameters)
+        g_code = move_arc_2(0, math.pi, machining_parameters)
                                                                             # q2
     elif line_specification == 'q2' :
         g_code = move_vertical(-2, machining_parameters)
                                                                             # q3
     elif line_specification == 'q3' :
-        g_code = move_arc(math.pi, 2*math.pi, machining_parameters)
+        g_code = move_arc_2(math.pi, 2*math.pi, machining_parameters)
                                                                             # q4
     elif line_specification == 'q4' :
         g_code = move_back_vertical(
@@ -512,7 +528,7 @@ def build_line_g_code(
         g_code = move_horizontal(0.5, machining_parameters)
                                                                             # s1
     elif line_specification == 's1' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             short_circle_angle_takeback, math.pi, machining_parameters
         )
                                                                             # s2
@@ -528,7 +544,7 @@ def build_line_g_code(
         g_code = move_small_quarter_arc(math.pi/2, 0, machining_parameters)
                                                                             # s5
     elif line_specification == 's5' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             2*math.pi, math.pi + short_circle_angle_takeback,
             machining_parameters
         )
@@ -560,7 +576,7 @@ def build_line_g_code(
         g_code = move_vertical(-3.5, machining_parameters)
                                                                             # u2
     elif line_specification == 'u2' :
-        g_code = move_arc(math.pi, 2*math.pi, machining_parameters)
+        g_code = move_arc_2(math.pi, 2*math.pi, machining_parameters)
                                                                             # u3
     elif line_specification == 'u3' :
         g_code = move_back_vertical(
@@ -654,7 +670,7 @@ def build_line_g_code(
         )
                                                                             # B2
     elif line_specification == 'B2' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             -math.pi/2, math.pi/2,
             machining_parameters, uc_circle_radius
         )
@@ -676,7 +692,7 @@ def build_line_g_code(
         )
                                                                             # B6
     elif line_specification == 'B6' :
-        g_code = move_arc(
+        g_code = move_arc_2(
             -math.pi/2, math.pi/2,
             machining_parameters, uc_circle_radius
         )
@@ -833,13 +849,68 @@ def build_line_set(character) :
 
     # ..........................................................................
                                                                              # A
-    if character == 'A' :
+    elif character == 'A' :
         line_set    = 'l 2 8 l 2 -8 m -0.5 2 h -3'
                                                                              # B
-    if character == 'B' :
-        line_set    = ['B1', 'B2', 'B3', 'B4', 'B5', 'B6']
-        entry_point = [0, uc_letter_height/2]
-        exit_point  = [-uc_circle_radius, uc_letter_height/2]
+    elif character == 'B' :
+        line_set    = 'm 0 4 h 2 a 2 -90 90 h -2 v -8 h 2 a 2 -90 90'
+                                                                             # C
+    elif character == 'C' :
+        line_set    = 'm 4 6 a 2 0 180 v -4 a 2 180 360'
+                                                                             # D
+    elif character == 'D' :
+        line_set    = 'v 8 h 2 a 2 90 0 v -4 a 2 0 -90 h -2'
+                                                                             # E
+    elif character == 'E' :
+        line_set    = 'm 4 8 h -4 v -8 h 4 m -4 0 m 0 4 h 3'
+                                                                             # F
+    elif character == 'F' :
+        line_set    = 'm 4 8 h -4 v -8 m 0 4 h 3'
+                                                                             # G
+    elif character == 'G' :
+        line_set    = 'm 2 3.5 h 2 v -1.5 a 2 360 180 v 4 a 2 180 0'
+                                                                             # H
+    elif character == 'H' :
+        line_set    = 'v 8 m 0 -4 h 4 m 0 4 v -8'
+                                                                             # I
+    elif character == 'I' :
+        line_set    = 'v 8'
+                                                                             # J
+    elif character == 'J' :
+        line_set    = 'a 2 -90 0 v 6'
+                                                                             # K
+    elif character == 'K' :
+        line_set    = 'm 0 8 v -8 m 0 2 l 4 6 m -2.75 -4.5 l 2.75 -3.5'
+                                                                             # L
+    elif character == 'L' :
+        line_set    = 'm 0 8 v -8 h 4'
+                                                                             # N
+    elif character == 'N' :
+        line_set    = 'v 8 l 4 -8 v 8'
+                                                                             # M
+    elif character == 'M' :
+        line_set    = 'v 8 l 2.5 -4 l 2.5 4 v -8'
+                                                                             # O
+    elif character == 'O' :
+        line_set    = 'm 0 2 a 2 180 360 v 4 a 2 0 180 v -4'
+                                                                             # P
+    elif character == 'P' :
+        line_set    = 'v 8 h 2 a 2 90 -90 h -2'
+                                                                             # Q
+    elif character == 'Q' :
+        line_set    = 'm 3 2 l 2 -2 m -1 1 v 5 a 2 0 180 v -4 a 2 -180 -45'
+                                                                             # R
+    elif character == 'R' :
+        line_set    = 'v 8 h 2 a 2 90 -90 h -2 m 2 0 l 2 -4'
+                                                                             # S
+    elif character == 'S' :
+        line_set    = 'm 0 2 a 2 -180 90 a 2 270 0'
+                                                                             # T
+    elif character == 'T' :
+        line_set    = 'm 0 8 h 4 m -2 0 v -8'
+                                                                             # U
+    elif character == 'U' :
+        line_set    = 'm 0 8 v -6 a 2 180 360 v6'
                                                                              # V
     elif character == 'V' :
         line_set    = 'm 0 8 l 2 -8 l 2 8'
@@ -881,20 +952,25 @@ def line_set_to_gcode(
         delta_x = 0
         delta_y = 0
         if (index == 0) and (command == 'm') :
+                                                         # first command is move
             delta_x = float(parameter_list[0])
             delta_y = float(parameter_list[1])
             entry_point = [delta_x, delta_y]
         else :
+                                                               # horizontal line
             if command == 'h' :
                 delta_x = float(parameter_list[0])
                 g_code += move_horizontal(delta_x, machining_parameters)
+                                                                 # vertical line
             elif command == 'v' :
                 delta_y = float(parameter_list[0])
                 g_code += move_vertical(delta_y, machining_parameters)
+                                                                 # diagonal line
             elif command == 'l' :
                 delta_x = float(parameter_list[0])
                 delta_y = float(parameter_list[1])
                 g_code += move_diagonal(delta_x, delta_y, machining_parameters)
+                                                           # (diagonal) movement
             elif command == 'm' :
                 if (index > 0) and (commands[index-1] != 'm') :
                     if lift_for_drill_back :
@@ -905,6 +981,23 @@ def line_set_to_gcode(
                 if (index-1 < len(commands)) and (commands[index+1] != 'm') :
                     if lift_for_drill_back :
                         g_code += lift_drill(not LIFT_UP, machining_parameters)
+                                                                    # circle arc
+            elif command == 'a' :
+                radius      = float(parameter_list[0])
+                start_angle = float(parameter_list[1])*math.pi/180
+                end_angle   = float(parameter_list[2])*math.pi/180
+                delta_x = radius*(math.cos(end_angle) - math.cos(start_angle))
+                delta_y = radius*(math.sin(end_angle) - math.sin(start_angle))
+                if                                             \
+                    ((start_angle < 0) and (end_angle > 0)) or \
+                    ((start_angle > 0) and (end_angle < 0))    \
+                :
+                    max_x_at_0 = exit_point_x + radius
+                    if max_x_at_0 > max_x :
+                        max_x = max_x_at_0
+                g_code += move_arc(
+                    radius, start_angle, end_angle, machining_parameters
+                )
                                                              # update exit point
         exit_point_x = exit_point_x + delta_x
         exit_point_y = exit_point_y + delta_y
@@ -934,7 +1027,7 @@ def character_data(
         (character_g_code, entry_point, exit_point) = line_set_to_gcode(
             line_set, machining_parameters, lift_for_drill_back
         )
-        if character == 'V' :
+        if character == 'K' :
             print(character + ' :')
             print(character_g_code)
             print('entry : ' + repr(entry_point))
