@@ -16,6 +16,7 @@ lift_for_drill_back = False
 # ------------------------------------------------------------------------------
                                                                 # font file spec
 font_file_spec = parent_dir + os.sep + 'text-rounded.txt'
+font_file_spec = parent_dir + os.sep + 'text-squared.txt'
 
 # ------------------------------------------------------------------------------
                                                            # drilling parameters
