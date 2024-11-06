@@ -10,8 +10,11 @@ import text_lib
 # ------------------------------------------------------------------------------
                                                                    # test string
 pangram = 'The quick brown fox jumps over the lazy dog'
+pangram = 'Gianni Pante'
 digits = '0123456789' + ' ' + '+-*/\'().,:'
-lift_for_drill_back = False
+show_uppercase = False
+show_digits = False
+lift_for_drill_back = True
 
 # ------------------------------------------------------------------------------
                                                                 # font file spec
@@ -61,35 +64,37 @@ g_code_file.write(gcode_lib.move_back_to_origin())
 
 # ------------------------------------------------------------------------------
                                                                 # uppercase text
-comment = 'uppercase text'
-g_code_file.write(";\n; %s\n;\n" % comment)
-print(INDENT + comment)
-g_code_file.write(gcode_lib.move_fast(
-    0, 3*text_lib.lc_letter_height*machining_parameters['drill_diameter'], 0,
-    machining_parameters['fast_displacement_speed']
-))
-text = pangram.upper()
-g_code_file.write(text_lib.line_g_code(
-    text, font_file_spec, machining_parameters, lift_for_drill_back
-))
+if show_uppercase :
+    comment = 'uppercase text'
+    g_code_file.write(";\n; %s\n;\n" % comment)
+    print(INDENT + comment)
+    g_code_file.write(gcode_lib.move_fast(
+        0, 3*text_lib.lc_letter_height*machining_parameters['drill_diameter'], 0,
+        machining_parameters['fast_displacement_speed']
+    ))
+    text = pangram.upper()
+    g_code_file.write(text_lib.line_g_code(
+        text, font_file_spec, machining_parameters, lift_for_drill_back
+    ))
                                                                 # back to origin
-g_code_file.write(gcode_lib.move_back_to_origin())
+    g_code_file.write(gcode_lib.move_back_to_origin())
 
 # ------------------------------------------------------------------------------
                                                                         # digits
-comment = 'digits'
-g_code_file.write(";\n; %s\n;\n" % comment)
-print(INDENT + comment)
-g_code_file.write(gcode_lib.move_fast(
-    0, 6*text_lib.lc_letter_height*machining_parameters['drill_diameter'], 0,
-    machining_parameters['fast_displacement_speed']
-))
-text = digits
-g_code_file.write(text_lib.line_g_code(
-    text, font_file_spec, machining_parameters, lift_for_drill_back
-))
+if show_digits :
+    comment = 'digits'
+    g_code_file.write(";\n; %s\n;\n" % comment)
+    print(INDENT + comment)
+    g_code_file.write(gcode_lib.move_fast(
+        0, 6*text_lib.lc_letter_height*machining_parameters['drill_diameter'], 0,
+        machining_parameters['fast_displacement_speed']
+    ))
+    text = digits
+    g_code_file.write(text_lib.line_g_code(
+        text, font_file_spec, machining_parameters, lift_for_drill_back
+    ))
                                                                 # back to origin
-g_code_file.write(gcode_lib.move_back_to_origin())
+    g_code_file.write(gcode_lib.move_back_to_origin())
 
 # ------------------------------------------------------------------------------
                                                                    # end of file
