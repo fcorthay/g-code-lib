@@ -10,16 +10,15 @@ import text_lib
 # ------------------------------------------------------------------------------
                                                                    # test string
 pangram = 'The quick brown fox jumps over the lazy dog'
-pangram = 'Gianni Pante'
 digits = '0123456789' + ' ' + '+-*/\'().,:'
-show_uppercase = False
-show_digits = False
-lift_for_drill_back = True
+show_uppercase = True
+show_digits = True
+lift_for_drill_back = False
 
 # ------------------------------------------------------------------------------
                                                                 # font file spec
-font_file_spec = parent_dir + os.sep + 'text-rounded.txt'
 font_file_spec = parent_dir + os.sep + 'text-squared.txt'
+font_file_spec = parent_dir + os.sep + 'text-rounded.txt'
 
 # ------------------------------------------------------------------------------
                                                            # drilling parameters
