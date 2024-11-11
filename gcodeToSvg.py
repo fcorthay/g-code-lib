@@ -25,21 +25,22 @@ parser.add_argument('gcodeFile')
                                                                     # page width
 parser.add_argument(
     '-x', '--width', default=1000,
-    help = 'page width'
+    help = 'page width in mm'
 )
                                                                    # page height
 parser.add_argument(
     '-y', '--height', default=1000,
-    help = 'page height'
+    help = 'page height in mm'
 )
                                                                 # drill diameter
 parser.add_argument(
     '-d', '--diameter', default=1/4*inch_to_mm,
-    help = 'drill diameter'
+    help = 'default drill diameter in mm'
 )
                                                                # plate thickness
 parser.add_argument(
-    '-t', '--thickness', default=20
+    '-t', '--thickness', default=20,
+    help = 'board thickness in mm'
 )
                                                                 # verbose output
 parser.add_argument(
@@ -260,7 +261,9 @@ with open(gcode_file_spec) as gcode_file:
             old_y = new_y
             old_z = new_z
                                                                  # init SVG file
-print("\nWriting to \"%s\"" % svg_file_spec)
+if verbose :
+    print()
+print("Writing file \"%s\"" % svg_file_spec)
 svg_file = open(svg_file_spec, "w")
 svg_file.write("<svg version=\"1.1\"\n")
 svg_file.write(INDENT + "width=\"%dcm\" height=\"%dcm\"\n" % (
@@ -277,7 +280,8 @@ for vector in vector_list :
 layer_list.sort(reverse=True)
                                                # group and write vectors to file
 for layer in layer_list :
-    print(INDENT + layer)
+    if verbose :
+        print(INDENT + layer)
     svg_file.write(INDENT + "<g\n")
     svg_file.write(2*INDENT + "inkscape:groupmode=\"layer\"\n")
     svg_file.write(2*INDENT + "id=\"%s\"\n" % layer)
