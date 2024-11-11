@@ -13,7 +13,7 @@ machining_parameters['drill_depth'] = 2
 machining_parameters['pass_depth']  = 1
 
 # ------------------------------------------------------------------------------
-                                                            # input polygon spec
+                                                           # input polygons spec
 polygon1_name = 'gear'
 polygon2_name = 'star'
 polygon_file_name = 'logo.svg'
@@ -43,7 +43,7 @@ g_code_file.write(gcode_lib.go_to_start(
 g_code_file.write(gcode_lib.move_back_to_origin())
 
 # ------------------------------------------------------------------------------
-                                                            # star shape polygon
+                                                            # gear shape polygon
 print(INDENT + 'reading from %s' % polygon_file_name)
 
 comment = "polygon \"%s\"" % polygon1_name
@@ -64,7 +64,7 @@ g_code_file.write(gcode_lib.move_back_to_origin())
 
 
 # ------------------------------------------------------------------------------
-                                                            # gear shape polygon
+                                                            # star shape polygon
 print(INDENT + 'reading from %s' % polygon_file_name)
 
 comment = "polygon \"%s\"" % polygon2_name

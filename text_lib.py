@@ -264,11 +264,6 @@ def character_data(
         (character_g_code, entry_point, exit_point) = line_set_to_gcode(
             line_set, machining_parameters, lift_for_drill_back
         )
-        if character == '(' :
-            print(character + ' :')
-            print(character_g_code)
-            print('entry : ' + repr(entry_point))
-            print('exit : ' + repr(exit_point))
         g_code += character_g_code
                                                                   # lift back up
         g_code += lift_drill(LIFT_UP, machining_parameters)
