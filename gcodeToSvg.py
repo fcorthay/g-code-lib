@@ -8,7 +8,8 @@ import re
 # Constants
 #
 inch_to_mm = 25.4
-mm_to_px = 3.7795
+inch_to_px = 96
+mm_to_px = inch_to_px/inch_to_mm  # ~ 3.7795
 displacement_line_width = 1
 
 INDENT = 2 * ' '
@@ -265,12 +266,35 @@ if verbose :
     print()
 print("Writing file \"%s\"" % svg_file_spec)
 svg_file = open(svg_file_spec, "w")
-svg_file.write("<svg version=\"1.1\"\n")
-svg_file.write(INDENT + "width=\"%dcm\" height=\"%dcm\"\n" % (
-    page_width/10, page_height/10
-))
-svg_file.write(INDENT + "xmlns=\"http://www.w3.org/2000/svg\"\n")
+svg_file.write("<svg\n")
+svg_file.write(
+    INDENT + "width=\"%dmm\" height=\"%dmm\"\n" % (page_width, page_height)
+)
+svg_file.write(
+    INDENT + "viewBox=\"0 0 %g %g\"\n" % (
+        page_width*mm_to_px, page_height*mm_to_px
+    )
+)
 svg_file.write(">\n")
+                                                   # set Inkscape units and grid
+svg_file.write(
+    INDENT + "<sodipodi:namedview\n" +
+    2*INDENT + "inkscape:document-units=\"cm\"\n" +
+    2*INDENT + "showgrid=\"true\"\n" +
+    INDENT + ">\n" +
+    2*INDENT + "<inkscape:grid\n" +
+    3*INDENT + "type=\"xygrid\"\n" +
+    3*INDENT + "id=\"cm\"\n" +
+    3*INDENT + "units=\"cm\"\n" +
+    3*INDENT + "spacingx=\"%g\"\n" % (10*mm_to_px) +
+    3*INDENT + "spacingy=\"%g\"\n" % (10*mm_to_px) +
+    3*INDENT + "emspacing=\"10\"\n" +
+    3*INDENT + "originx=\"0\"\n" +
+    3*INDENT + "originy=\"0\"\n" +
+    2*INDENT + "/>\n" +
+    INDENT + "</sodipodi:namedview>\n"
+)
+
                                                               # build layer list
 layer_list = []
 for vector in vector_list :
