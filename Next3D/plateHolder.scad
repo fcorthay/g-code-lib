@@ -30,7 +30,7 @@ railOffsets = [boltOffsets[0], boltOffsets[2]];
 
 //––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––\\
                                                                         // rendering
-printBottomPart = true;
+printBottomPart = false;
 printTopPart = false;
 
 eps = 0.01;
@@ -44,8 +44,8 @@ if (printBottomPart)
       holderBottom();
 else if (printTopPart)
   color("yellow")
-    translate([0, 0, holderTopHeight])
-      rotate([180, 0, 0])
+//    translate([0, 0, holderTopHeight])
+//      rotate([180, 0, 0])
         holderTop();
 else {
   color("LightGrey")
@@ -59,29 +59,32 @@ else {
                                                                // holder bottom part
 module holderBottom(){
   difference(){
+    union(){
                                                                              // base
-    translate([0, 0, 0])
       cube([holderLength, holderWidth, spacingHeight], center=false);
+                                                                            // rails
+      for (offset = railOffsets)
+        translate([offset, holderWidth/2, -railDepth/2])
+          cube([
+            railWidth - railWidthMargin, holderWidth, railDepth + eps
+          ], center=true);
+    }
                                                                             // bolts
     for (offset = boltOffsets)
       translate([offset, holderWidth/2, 0])
         bolt();
+                                                                      // 45° cutouts
+    for (side = [-1, 1])
+      translate([
+        holderLength - 2*holderWidth/3,
+        holderWidth/2 + side*holderWidth/2 + side*holderWidth/3,
+        -0.1*spacingHeight - railDepth
+      ])
+        rotate([0, 0, -45])
+          cube([holderWidth, holderWidth, 1.2*spacingHeight + railDepth]);
   }
                                                                 // plate height step
   cube([holderStepLength, holderWidth, spacingHeight + plateHeight], center=false);
-                                                                            // rails
-  difference(){
-                                                                             // base
-    for (offset = railOffsets)
-      translate([offset, holderWidth/2, -railDepth/2])
-        cube([
-          railWidth - railWidthMargin, holderWidth, railDepth + eps
-        ], center=true);
-                                                                       // bolt holes
-    for (offset = railOffsets)
-      translate([offset, holderWidth/2, -railDepth/2])
-        cylinder(d=boltHeadDiameter, h=railDepth + eps, center=true);
-  }
 }
 
 //................................................................................\\
@@ -89,13 +92,20 @@ module holderBottom(){
 module holderTop(){
   difference(){
                                                                              // base
-    holderBottom();
-                                                                          // top cut
-    translate([-holderLength/2, -holderWidth/2, holderTopHeight])
-      cube([2*holderLength, 2*holderWidth, spacingHeight + plateHeight]);
-                                                                       // bottom cut
-    translate([-holderLength/2, -holderWidth/2, -2*railDepth])
-      cube([2*holderLength, 2*holderWidth, 2*railDepth]);
+    cube([holderLength, holderWidth, holderTopHeight], center=false);
+                                                                       // bolt holes
+    for (offset = boltOffsets)
+      translate([offset, holderWidth/2, -spacingHeight])
+        bolt();
+                                                                      // 45° cutouts
+    for (ySide = [-1, 1])
+      translate([
+        holderLength - 2*holderWidth/3,
+        holderWidth/2 + ySide*holderWidth/2 + ySide*holderWidth/3,
+        -spacingHeight/4
+      ])
+        rotate([0, 0, -45])
+          cube([holderWidth, holderWidth, spacingHeight]);
   }
 }
 
@@ -105,7 +115,7 @@ module bolt(){
                                                                              // bolt
   translate([0, 0, spacingHeight])
     cylinder(d=boltDiameter, h=2*spacingHeight, center=true);
-  translate([0, 0, boltHeadHeight/2 - eps])
+  translate([0, 0, boltHeadHeight/2 - railDepth/2 - eps])
     rotate([0, 0, 90])
-      cylinder(d=boltHeadDiameter, h=boltHeadHeight, center=true, $fn=6);
+      cylinder(d=boltHeadDiameter, h=boltHeadHeight+railDepth, center=true, $fn=6);
 }

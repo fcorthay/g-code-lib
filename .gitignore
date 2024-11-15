@@ -4,3 +4,7 @@ __pycache__/
 # generated files
 *.gcode
 *.stl
+Examples/importPolygons.svg
+Examples/text.svg
+din_1451-*.*
+LG_1050-*.*
