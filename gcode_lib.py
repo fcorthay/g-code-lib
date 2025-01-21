@@ -66,11 +66,11 @@ def set_relative_coordinates(relative=True):
 
 # ..............................................................................
                                                      # g-code for rapid movement
-def move_fast(dx=0, dy=0, dz=0, speed=0):
+def move_fast(dx=0, dy=0, dz=0, speed=0, absolute=False):
     g_code = 'G0'
-    if dx != 0 :
+    if dx != 0 or absolute :
         g_code += " X%.3f" % dx
-    if dy != 0 :
+    if dy != 0 or absolute :
         g_code += " Y%.3f" % dy
     if dz != 0 :
         g_code += " Z%.3f" % dz
