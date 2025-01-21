@@ -611,16 +611,18 @@ def segment_polygon_intersection(segment, polygon):
 def go_to_start(
     start_x=0, start_y=0,
     machining_parameters=default_machining_parameters,
-    init_X_Carve = False
+    machine=''
 ):
     displacement_height      = machining_parameters['displacement_height']
     fast_displacement_speed  = machining_parameters['fast_displacement_speed']
     drill_displacement_speed = machining_parameters['drill_displacement_speed']
 
     g_code = ";\n; initialization\n;\n"
-    g_code += set_units_to_millimeters()
-    if init_X_Carve :
+    if machine == 'X_Carve' :
         g_code += "$102=189 (X-Carve vertical axis displacement setup)\n"
+    elif machine == 'Next3D' :
+        g_code += "$102=133 (Next3D vertical axis displacement setup)\n"
+    g_code += set_units_to_millimeters()
     g_code += set_current_position_as_origin(False, False, True)
     g_code += set_relative_coordinates()
     g_code += "; move up to displacement height, set steady pace\n"
