@@ -344,19 +344,19 @@ def min_max(polygon):
 def extract_offset(polygon, close_shape=True):
                                                   # offsets are first coordinate
     [x_offset, y_offset] = polygon[0]
-    extracted_polynom = []
+    extracted_polygon = []
                                                               # take offset away
     for index in range(len(polygon)) :
-        extracted_polynom.append(
+        extracted_polygon.append(
             [polygon[index][0] - x_offset, polygon[index][1] - y_offset]
         )
                                                 # remove first (zero) coordinate
-    extracted_polynom = extracted_polynom[1:]
+    extracted_polygon = extracted_polygon[1:]
                                                                    # close shape
     if close_shape :
-        extracted_polynom.append([0, 0])
+        extracted_polygon.append([0, 0])
 
-    return(x_offset, y_offset, extracted_polynom)
+    return(x_offset, y_offset, extracted_polygon)
 
 # ..............................................................................
                                      # flip polygon vertically around the x-axis
