@@ -45,8 +45,13 @@ printHolder = false;
   printBottomPart = false;
   printTopPart = true;
 printSupportsAndSpacers = true;
+  printBoardWidthSpacers = false;
+  print2cmSpacers = true;
+  printFrontSupports = false;
+  printLongEdgeSupports = false;
+  printShortEdgeSupports = true;
 printSupports = !printSupportsAndSpacers && false;
-  printFrontSupports = !printSupportsAndSpacers && false;
+  printFrontSupports1 = !printSupportsAndSpacers && false;
 printSpacers = !printHolder && !printSupportsAndSpacers && !printSupports;
   printSpacer2 = false;
 
@@ -79,67 +84,73 @@ if (printSupportsAndSpacers) {
     translate([0, 2*railDepth + spacingHeight + plateHeight, 0]){
       translate([0, 2*railDepth + spacingHeight + plateHeight, 0]){
         translate([0, 2*railDepth + spacingHeight, 0]){
-        translate([0, 2*railDepth + spacingHeight, 0])
+          translate([0, 2*railDepth + spacingHeight, 0])
                                                           // board width spacers
-          for (xIndex = [0:3])
-            translate([xIndex*(spacerWidth + railWidth), 0, 0])
-              rotate([90, 0, 0])
-                lateralSpacer(plateHeight);
+            if (printBoardWidthSpacers)
+              for (xIndex = [0:3])
+                translate([xIndex*(spacerWidth + railWidth), 0, 0])
+                  rotate([90, 0, 0])
+                    lateralSpacer(plateHeight);
                                                                  // 2 cm spacers
-          for (xIndex = [0:7])
-            translate([xIndex*(spacerWidth + railWidth), 0, 0])
-              rotate([90, 0, 0])
-                lateralSpacer(2*spacerWidth);
+          if (print2cmSpacers)
+            for (xIndex = [0:7])
+              translate([xIndex*(spacerWidth + railWidth), 0, 0])
+                rotate([90, 0, 0])
+                  lateralSpacer(2*spacerWidth);
         }
                                                                // front supports
-        for (xIndex = [0:3])
-          translate([xIndex * (railSpacing + 2*railWidth), 0, 0])
-            rotate([90, 0, 0])
-              frontSupport();
+        if (printFrontSupports)
+          for (xIndex = [0:3])
+            translate([xIndex * (railSpacing + 2*railWidth), 0, 0])
+              rotate([90, 0, 0])
+                frontSupport();
       }
                                                 // long edge support and spacers
-      for (xIndex = [0:1])
-        translate([xIndex*(edgeTotalLength2 + railWidth), 0, 0])
-          rotate([90, 0, 0])
-            spacerEdge(
-              edgeTotalLength2, edgeSupportingLength, edgeSupportingWidth
-            );
-    }
-                                       // mirrored long edge support and spacers
-    for (xIndex = [0:1])
-      translate([xIndex*(edgeTotalLength2 + railWidth), 0, 0])
-        rotate([90, 0, 0])
-          translate([edgeTotalLength2, 0, 0])
-            mirror([1, 0, 0])
+      if (printLongEdgeSupports)
+        for (xIndex = [0:1])
+          translate([xIndex*(edgeTotalLength2 + railWidth), 0, 0])
+            rotate([90, 0, 0])
               spacerEdge(
                 edgeTotalLength2, edgeSupportingLength, edgeSupportingWidth
               );
+    }
+                                       // mirrored long edge support and spacers
+    if (printLongEdgeSupports)
+      for (xIndex = [0:1])
+        translate([xIndex*(edgeTotalLength2 + railWidth), 0, 0])
+          rotate([90, 0, 0])
+            translate([edgeTotalLength2, 0, 0])
+              mirror([1, 0, 0])
+                spacerEdge(
+                  edgeTotalLength2, edgeSupportingLength, edgeSupportingWidth
+                );
   }
                                                // short edge support and spacers
-  for (xIndex = [0:1])
-    translate([xIndex*(edgeTotalLength1 + railWidth), 0, 0])
-      rotate([90, 0, 0])
-        if (xIndex < 1)
-          spacerEdge(
-            edgeTotalLength1, edgeSupportingLength, edgeSupportingWidth
-          );
-        else
-          translate([edgeTotalLength1, 0, 0])
-            mirror([1, 0, 0])
-              spacerEdge(
-                edgeTotalLength1, edgeSupportingLength, edgeSupportingWidth
-              );
+  if (printShortEdgeSupports)
+    for (xIndex = [0:1])
+      translate([xIndex*(edgeTotalLength1 + railWidth), 0, 0])
+        rotate([90, 0, 0])
+          if (xIndex < 1)
+            spacerEdge(
+              edgeTotalLength1, edgeSupportingLength, edgeSupportingWidth
+            );
+          else
+            translate([edgeTotalLength1, 0, 0])
+              mirror([1, 0, 0])
+                spacerEdge(
+                  edgeTotalLength1, edgeSupportingLength, edgeSupportingWidth
+                );
 }
 else if (printSupports)
                                                                 // front support
-  if (printFrontSupports)
+  if (printFrontSupports1)
     frontSupport();
   else
                                                       // edge support and spacer
     spacerEdge(edgeTotalLength2, edgeSupportingLength, edgeSupportingWidth);
 
                                                                       // spacers
-else if (printSpacers)
+else if (printSpacer2)
                                                                   // 2 cm spacer
   if (printSpacer)
     lateralSpacer(2*spacerWidth);
