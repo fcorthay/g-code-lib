@@ -12,7 +12,7 @@ boltDiameter = 5.1;
 boltHeadDiameter = 9.1;
 boltHeadHeight = 4;
 
-railWidth = 5.2;
+railWidth = 5;
 railWidthMargin = 0.1;
 railSpacing = 27.5;
 railDepth = 3;
