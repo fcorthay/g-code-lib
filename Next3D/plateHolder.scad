@@ -14,7 +14,7 @@ boltHeadHeight = 4;
 
 railWidth = 5;
 railWidthMargin = 0.1;
-railSpacing = 27.5;
+railSpacing = 32.5;
 railDepth = 3;
 
 firstBoltOffset = 10;
@@ -45,10 +45,10 @@ printHolder = false;
   printBottomPart = false;
   printTopPart = true;
 printSupportsAndSpacers = true;
-  printBoardWidthSpacers = false;
+  printBoardWidthSpacers = true;
   print2cmSpacers = true;
-  printFrontSupports = false;
-  printLongEdgeSupports = false;
+  printFrontSupports = true;
+  printLongEdgeSupports = true;
   printShortEdgeSupports = true;
 printSupports = !printSupportsAndSpacers && false;
   printFrontSupports1 = !printSupportsAndSpacers && false;
